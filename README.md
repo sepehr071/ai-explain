@@ -53,8 +53,8 @@ src/
     loading-animation.tsx   # Skeleton shimmer
     preview-answer.tsx      # Quick text answer card
   lib/
-    openrouter.ts           # OpenRouter API wrapper
-    prompts.ts              # System prompt builder with style interpolation
+    openrouter.ts           # OpenRouter API wrapper (configurable model/temp/tokens)
+    prompts.ts              # Thinker + coder prompt builders
     styles.ts               # 10 style presets + random selection
   types/
     api.ts                  # Shared interfaces
@@ -65,7 +65,9 @@ src/
 1. User submits a question
 2. Two parallel API requests fire:
    - `/api/preview` — fast model returns plain text (shown immediately)
-   - `/api/explain` — random style preset feeds design tokens into a system prompt → OpenRouter generates a full HTML/CSS canvas
+   - `/api/explain` — two-stage pipeline:
+     - **Thinker** (fast model) — produces a structured content plan: sections, key points, diagram descriptions, data
+     - **Coder** (main model) — renders the content plan as a styled HTML/CSS/SVG infographic using a random style preset
 3. The canvas HTML is rendered in `<iframe srcDoc={html} sandbox="" />`
 4. Preview fades to 40% opacity when the canvas arrives
 

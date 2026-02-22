@@ -84,7 +84,7 @@ export default function Home() {
       </div>
 
       {hasResult && (
-        <div className="w-full max-w-7xl px-4 py-6 flex-1">
+        <div className="w-full max-w-[90rem] px-4 py-6 flex-1">
           <PreviewAnswer
             text={previewText}
             isLoading={isPreviewLoading}

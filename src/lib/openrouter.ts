@@ -1,15 +1,23 @@
+export interface OpenRouterOptions {
+  model?: string;
+  temperature?: number;
+  maxTokens?: number;
+  signal?: AbortSignal;
+}
+
 export async function generateExplanation(
   systemPrompt: string,
-  question: string
+  userMessage: string,
+  options: OpenRouterOptions = {}
 ): Promise<string> {
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY environment variable is not set");
   }
 
-  const model = process.env.OPENROUTER_MODEL;
+  const model = options.model ?? process.env.OPENROUTER_MODEL;
   if (!model) {
-    throw new Error("OPENROUTER_MODEL environment variable is not set");
+    throw new Error("No model specified and OPENROUTER_MODEL is not set");
   }
 
   const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -18,13 +26,14 @@ export async function generateExplanation(
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
+    signal: options.signal,
     body: JSON.stringify({
       model,
-      temperature: 0.6,
-      max_tokens: 24576,
+      temperature: options.temperature ?? 0.6,
+      max_tokens: options.maxTokens ?? 24576,
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user", content: question },
+        { role: "user", content: userMessage },
       ],
     }),
   });

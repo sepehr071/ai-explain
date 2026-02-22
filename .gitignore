@@ -40,6 +40,9 @@ yarn-error.log*
 # claude code
 .claude/
 
+# debug artifacts
+public/debug-*
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

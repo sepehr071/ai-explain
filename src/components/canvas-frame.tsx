@@ -5,10 +5,6 @@ interface CanvasFrameProps {
 }
 
 export default function CanvasFrame({ html }: CanvasFrameProps) {
-  console.log("[CanvasFrame] HTML length:", html.length);
-  console.log("[CanvasFrame] SVG count:", (html.match(/<svg/gi) || []).length);
-  console.log("[CanvasFrame] First 500 chars:", html.slice(0, 500));
-
   if (!html) return null;
 
   return (
