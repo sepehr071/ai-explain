@@ -1,6 +1,6 @@
 import type { StylePreset } from "@/types/api";
 
-const presets: StylePreset[] = [
+export const presets: StylePreset[] = [
   {
     name: "midnight-scholar",
     colors: { bg: "#0f172a", text: "#e2e8f0", accent: "#38bdf8", surface: "#1e293b" },
@@ -65,4 +65,16 @@ const presets: StylePreset[] = [
 
 export function getRandomPreset(): StylePreset {
   return presets[Math.floor(Math.random() * presets.length)];
+}
+
+export function getPresetByName(name: string): StylePreset | undefined {
+  return presets.find((p) => p.name === name);
+}
+
+export function getAllFontPairings(): Array<{ presetName: string; heading: string; body: string }> {
+  return presets.map((p) => ({
+    presetName: p.name,
+    heading: p.fonts.heading,
+    body: p.fonts.body,
+  }));
 }

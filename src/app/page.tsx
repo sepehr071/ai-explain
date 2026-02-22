@@ -1,10 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { Clock } from "lucide-react";
 import SearchInput from "@/components/search-input";
 import CanvasFrame from "@/components/canvas-frame";
 import LoadingAnimation from "@/components/loading-animation";
 import PreviewAnswer from "@/components/preview-answer";
+import StyleCustomizer from "@/components/style-customizer";
+import HistoryGallery from "@/components/history-gallery";
+import ExportButton from "@/components/export-button";
+import { addEntry, type HistoryEntry } from "@/lib/history";
+import DetailLevelSelector from "@/components/detail-level-selector";
+import type { CustomStyle, DetailLevel } from "@/types/api";
 
 export default function Home() {
   const [html, setHtml] = useState<string | null>(null);
@@ -12,6 +19,16 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
+  // Style Customizer
+  const [customStyle, setCustomStyle] = useState<CustomStyle | null>(null);
+  const [isStyleOpen, setIsStyleOpen] = useState(false);
+
+  // Detail Level
+  const [detailLevel, setDetailLevel] = useState<DetailLevel>("balanced");
+
+  // History
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
   const hasResult = html !== null || isLoading || error !== null;
 
@@ -22,6 +39,10 @@ export default function Home() {
     setHtml(null);
     setPreviewText(null);
 
+    let resolvedPreview: string | null = null;
+    let resolvedHtml: string | null = null;
+    let resolvedPreset: string | null = null;
+
     // Fire both requests in parallel
     const previewPromise = fetch("/api/preview", {
       method: "POST",
@@ -31,6 +52,7 @@ export default function Home() {
       .then(async (res) => {
         if (res.ok) {
           const data = await res.json();
+          resolvedPreview = data.text;
           setPreviewText(data.text);
         }
       })
@@ -40,7 +62,11 @@ export default function Home() {
     const explainPromise = fetch("/api/explain", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: q }),
+      body: JSON.stringify({
+        question: q,
+        detailLevel,
+        ...(customStyle ? { customStyle } : {}),
+      }),
     })
       .then(async (res) => {
         if (!res.ok) {
@@ -49,6 +75,8 @@ export default function Home() {
           return;
         }
         const data = await res.json();
+        resolvedHtml = data.html;
+        resolvedPreset = data.preset;
         setHtml(data.html);
       })
       .catch(() => {
@@ -57,6 +85,28 @@ export default function Home() {
       .finally(() => setIsLoading(false));
 
     await Promise.allSettled([previewPromise, explainPromise]);
+
+    // Save to history after both promises settle
+    if (resolvedHtml) {
+      addEntry({
+        question: q,
+        html: resolvedHtml,
+        previewText: resolvedPreview ?? "",
+        presetName: resolvedPreset ?? "unknown",
+        customStyle: customStyle ?? undefined,
+        detailLevel,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
+  function handleSelectHistoryEntry(entry: HistoryEntry) {
+    setHtml(entry.html);
+    setPreviewText(entry.previewText || null);
+    setError(null);
+    setIsLoading(false);
+    setIsPreviewLoading(false);
+    setIsGalleryOpen(false);
   }
 
   return (
@@ -76,7 +126,29 @@ export default function Home() {
         )}
 
         <div className="w-full">
-          <SearchInput onSubmit={handleSubmit} isLoading={isLoading} />
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <SearchInput onSubmit={handleSubmit} isLoading={isLoading} />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsGalleryOpen(true)}
+              className="shrink-0 p-2.5 rounded-xl border border-[#334155] bg-[#1E293B] text-[#94A3B8] hover:text-[#E2E8F0] hover:bg-[#334155] transition-colors duration-150 cursor-pointer"
+              title="History"
+            >
+              <Clock className="w-5 h-5" />
+            </button>
+          </div>
+
+          <DetailLevelSelector value={detailLevel} onChange={setDetailLevel} />
+
+          <StyleCustomizer
+            customStyle={customStyle}
+            onStyleChange={setCustomStyle}
+            isOpen={isStyleOpen}
+            onToggle={() => setIsStyleOpen((o) => !o)}
+          />
+
           {error && (
             <p className="text-[#FCA5A5] text-sm mt-2">{error}</p>
           )}
@@ -91,9 +163,22 @@ export default function Home() {
             isCanvasReady={html !== null}
           />
           {isLoading && <LoadingAnimation />}
-          {html && <CanvasFrame html={html} />}
+          {html && (
+            <>
+              <div className="flex justify-end mb-3">
+                <ExportButton html={html} />
+              </div>
+              <CanvasFrame html={html} />
+            </>
+          )}
         </div>
       )}
+
+      <HistoryGallery
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        onSelectEntry={handleSelectHistoryEntry}
+      />
     </main>
   );
 }

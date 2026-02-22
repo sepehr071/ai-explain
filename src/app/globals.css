@@ -39,11 +39,25 @@ body {
   animation: skeleton 2s ease-in-out infinite;
 }
 
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 300ms ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fadeIn,
   .animate-skeleton,
   .animate-pulse,
-  .animate-spin {
+  .animate-spin,
+  .animate-slideInRight {
     animation: none;
   }
 }

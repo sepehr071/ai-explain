@@ -3,6 +3,9 @@ export interface OpenRouterOptions {
   temperature?: number;
   maxTokens?: number;
   signal?: AbortSignal;
+  reasoning?: {
+    effort: "none" | "low" | "medium" | "high";
+  };
 }
 
 export async function generateExplanation(
@@ -35,6 +38,9 @@ export async function generateExplanation(
         { role: "system", content: systemPrompt },
         { role: "user", content: userMessage },
       ],
+      ...(options.reasoning && options.reasoning.effort !== "none"
+        ? { reasoning: { effort: options.reasoning.effort } }
+        : {}),
     }),
   });
 
