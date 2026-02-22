@@ -1,36 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Explain
+
+Ask any question, get a beautiful visual explanation. Each answer is rendered as a unique HTML/CSS canvas inside a sandboxed iframe, styled with a randomly selected theme from 10 curated presets.
+
+A fast LLM provides a quick text preview while the full visual canvas generates in the background.
+
+## Stack
+
+- **Next.js 16** (App Router) + React 19 + TypeScript
+- **Tailwind CSS 4** (PostCSS plugin)
+- **OpenRouter API** (two models: main for HTML canvas, fast for text preview)
+- **Zod v4** for input validation
+- **lucide-react** for icons
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Fill in your OpenRouter API key and model choices
+
+# Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Description |
+|----------|-------------|
+| `OPENROUTER_API_KEY` | Your OpenRouter API key |
+| `OPENROUTER_MODEL` | Model for HTML canvas generation (e.g. `google/gemini-3-flash-preview`) |
+| `OPENROUTER_FAST_MODEL` | Fast model for text preview (e.g. `x-ai/grok-4.1-fast`) |
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/
+    layout.tsx              # Root layout, Inter font, dark background
+    page.tsx                # Main page — state management, parallel fetch
+    globals.css             # Tailwind v4 import, animations
+    api/
+      explain/route.ts      # POST — main canvas generation (60s timeout)
+      preview/route.ts      # POST — fast text preview (15s timeout)
+  components/
+    search-input.tsx        # Question input with Lucide icons
+    canvas-frame.tsx        # Sandboxed iframe renderer
+    loading-animation.tsx   # Skeleton shimmer
+    preview-answer.tsx      # Quick text answer card
+  lib/
+    openrouter.ts           # OpenRouter API wrapper
+    prompts.ts              # System prompt builder with style interpolation
+    styles.ts               # 10 style presets + random selection
+  types/
+    api.ts                  # Shared interfaces
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## How It Works
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. User submits a question
+2. Two parallel API requests fire:
+   - `/api/preview` — fast model returns plain text (shown immediately)
+   - `/api/explain` — random style preset feeds design tokens into a system prompt → OpenRouter generates a full HTML/CSS canvas
+3. The canvas HTML is rendered in `<iframe srcDoc={html} sandbox="" />`
+4. Preview fades to 40% opacity when the canvas arrives
 
-## Deploy on Vercel
+## Style Presets
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Each response uses one of 10 randomly selected themes:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`midnight-scholar` · `warm-notebook` · `forest-green` · `sunset-coral` · `ocean-deep` · `lavender-dream` · `charcoal-minimal` · `terracotta` · `arctic-frost` · `golden-hour`
+
+Each theme includes curated colors, a Google Fonts pairing, and a mood descriptor.
+
+## Scripts
+
+```bash
+npm run dev      # Dev server
+npm run build    # Production build
+npm run start    # Production server
+npm run lint     # ESLint
+```
