@@ -6,7 +6,7 @@ import { buildThinkerPrompt, buildCoderPrompt, buildShortCoderPrompt } from "@/l
 import { generateExplanation } from "@/lib/openrouter";
 import { generateImage, type ImageGenResult } from "@/lib/image-gen";
 
-export const maxDuration = 120;
+export const maxDuration = 240;
 
 function stripCodeFences(text: string): string {
   const trimmed = text.trim();
@@ -85,9 +85,9 @@ export async function POST(request: Request) {
 
     // Detail level configuration
     const config = {
-      short:    { thinkerMaxTokens: 0,    thinkerTimeout: 0,     thinkerReasoning: "none"   as const, coderMaxTokens: 12000, coderTimeout: 30_000, coderReasoning: "none"   as const, skipThinker: true,  skipImages: true  },
-      balanced: { thinkerMaxTokens: 4000, thinkerTimeout: 30_000, thinkerReasoning: "medium" as const, coderMaxTokens: 24576, coderTimeout: 45_000, coderReasoning: "medium" as const, skipThinker: false, skipImages: false },
-      detailed: { thinkerMaxTokens: 6000, thinkerTimeout: 45_000, thinkerReasoning: "high"   as const, coderMaxTokens: 32000, coderTimeout: 60_000, coderReasoning: "high"   as const, skipThinker: false, skipImages: false },
+      short:    { thinkerMaxTokens: 0,    thinkerTimeout: 0,      thinkerReasoning: "none"   as const, coderMaxTokens: 12000, coderTimeout: 60_000,  coderReasoning: "none"   as const, skipThinker: true,  skipImages: true  },
+      balanced: { thinkerMaxTokens: 4000, thinkerTimeout: 60_000,  thinkerReasoning: "medium" as const, coderMaxTokens: 24576, coderTimeout: 90_000,  coderReasoning: "medium" as const, skipThinker: false, skipImages: false },
+      detailed: { thinkerMaxTokens: 6000, thinkerTimeout: 90_000,  thinkerReasoning: "high"   as const, coderMaxTokens: 32000, coderTimeout: 120_000, coderReasoning: "high"   as const, skipThinker: false, skipImages: false },
     }[detailLevel];
 
     let html: string;
@@ -153,7 +153,7 @@ export async function POST(request: Request) {
       // Image generation (parallel, graceful degradation)
       const imagePromises = imagePrompts.map((ip) => {
         const imgController = new AbortController();
-        const imgTimeout = setTimeout(() => imgController.abort(), 30_000);
+        const imgTimeout = setTimeout(() => imgController.abort(), 60_000);
 
         return generateImage(ip.prompt, ip.id, imgController.signal)
           .catch((err) => {

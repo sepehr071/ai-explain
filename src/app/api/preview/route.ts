@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod/v4";
 
-export const maxDuration = 15;
+export const maxDuration = 30;
 
 const requestSchema = z.object({
   question: z.string().min(1).max(500),

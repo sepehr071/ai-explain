@@ -104,7 +104,7 @@ Three chip buttons (Short/Balanced/Detailed) below search bar. Controls reasonin
 Auto-saves to localStorage (4.5MB budget, LRU eviction). Right-side sliding panel with scaled iframe thumbnails, relative timestamps, and preset badges. Click to reload.
 
 ### Canvas Export
-PNG and PDF download via html2canvas-pro + jsPDF. Uses dual-rendering (hidden sanitized div) to bypass iframe sandbox. Google Fonts extracted and injected into `<head>` for capture.
+PNG and PDF download via html2canvas-pro + jsPDF. Two-phase rendering: (1) iframe renders the full HTML document for correct CSS resolution (body/html/:root selectors, cascade), (2) deep-cloned DOM + rewritten styles transferred to host document div for html2canvas capture. PDF uses multi-page A4-proportioned slicing for tall canvases. Google Fonts injected into host `<head>` for capture.
 
 ## Conventions
 
@@ -118,7 +118,8 @@ PNG and PDF download via html2canvas-pro + jsPDF. Uses dual-rendering (hidden sa
 ## Security
 
 - Iframe uses `sandbox=""` (most restrictive — no scripts, no forms, no same-origin)
-- Export sanitizes HTML before DOM injection (strips `<script>` tags and event handlers)
+- Export sanitizes HTML before rendering (strips `<script>` tags and event handlers)
+- Export uses two-phase approach: iframe for CSS resolution, host div for capture (html2canvas cannot render cross-document elements)
 - Zod validates all API inputs (1-500 chars, hex color regex, enum validation)
 
 ## Style Presets
@@ -138,7 +139,7 @@ The LLM-generated HTML supports:
 
 | Stage | Short | Balanced | Detailed |
 |-------|-------|----------|----------|
-| Thinker | Skipped | 30s | 45s |
-| Coder | 30s | 45s | 60s |
-| Image Gen | Skipped | 30s | 30s |
-| maxDuration | 120s | 120s | 120s |
+| Thinker | Skipped | 60s | 90s |
+| Coder | 60s | 90s | 120s |
+| Image Gen | Skipped | 60s | 60s |
+| maxDuration | 240s | 240s | 240s |
