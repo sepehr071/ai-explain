@@ -1,0 +1,89 @@
+@import "tailwindcss";
+
+/* App chrome palette: ink-blue ground, highlighter-amber accent. */
+@theme {
+  --color-ink: #0f1220;
+  --color-panel: #171b2b;
+  --color-raised: #1f2437;
+  --color-line: #2a3048;
+  --color-fg: #eceef4;
+  --color-muted: #9098ae;
+  --color-faint: #5c6480;
+  --color-accent: #f5c451;
+  --color-accent-strong: #ffd46b;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-newsreader), Georgia, serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-ink);
+  /* faint drafting-grid dots behind the chrome */
+  background-image: radial-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+::selection {
+  background: rgb(245 196 81 / 0.35);
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 500ms ease-out;
+}
+
+@keyframes skeleton {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-skeleton {
+  animation: skeleton 2s ease-in-out infinite;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideInRight {
+  animation: slideInRight 300ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-skeleton,
+  .animate-pulse,
+  .animate-spin,
+  .animate-slideInRight {
+    animation: none;
+  }
+}
